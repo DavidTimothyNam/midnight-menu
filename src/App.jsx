@@ -10,7 +10,10 @@ import IngredientCard from "./components/IngredientCard";
 import MethodPicker from "./components/MethodPicker";
 import ResultCard from "./components/ResultCard";
 import FinalSummary from "./components/FinalSummary";
+import CookingScreen from "./components/CookingScreen";
 import "./styles/index.css";
+
+const COOKING_DELAY_MS = 2200;
 
 export default function App() {
   const [currentCustomerIndex, setCurrentCustomerIndex] = useState(0);
@@ -19,6 +22,8 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [servedDishes, setServedDishes] = useState([]);
   const [isNightComplete, setIsNightComplete] = useState(false);
+  const [isCooking, setIsCooking] = useState(false);
+  const [isCookingEnding, setIsCookingEnding] = useState(false);
 
   const currentCustomer = customers[currentCustomerIndex];
 
@@ -48,15 +53,29 @@ export default function App() {
   }
 
   function handleServe() {
+    if (!canServe) {
+      return;
+    }
+
     const dishResult = scoreDish(
       currentCustomer,
       selectedIngredients,
       selectedMethod,
     );
 
-    setResult(dishResult);
-  }
+    setIsCooking(true);
+    setIsCookingEnding(false);
 
+    window.setTimeout(() => {
+      setIsCookingEnding(true);
+
+      window.setTimeout(() => {
+        setResult(dishResult);
+        setIsCooking(false);
+        setIsCookingEnding(false);
+      }, 450);
+    }, COOKING_DELAY_MS);
+  }
   function handleContinue() {
     const servedDish = {
       customer: currentCustomer,
@@ -70,6 +89,8 @@ export default function App() {
     setSelectedIngredientIds([]);
     setSelectedMethodId("");
     setResult(null);
+    setIsCooking(false);
+    setIsCookingEnding(false);
 
     if (isFinalCustomer) {
       setIsNightComplete(true);
@@ -86,6 +107,8 @@ export default function App() {
     setResult(null);
     setServedDishes([]);
     setIsNightComplete(false);
+    setIsCooking(false);
+    setIsCookingEnding(false);
   }
 
   if (isNightComplete) {
@@ -101,7 +124,14 @@ export default function App() {
   return (
     <main className="app-shell">
       <section className="panel">
-        {!result ? (
+        {isCooking ? (
+          <CookingScreen
+            customer={currentCustomer}
+            selectedIngredients={selectedIngredients}
+            selectedMethod={selectedMethod}
+            isEnding={isCookingEnding}
+          />
+        ) : !result ? (
           <>
             <CustomerCard
               customer={currentCustomer}

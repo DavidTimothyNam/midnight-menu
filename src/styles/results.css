@@ -46,3 +46,19 @@
 .muted {
   color: #8a7662;
 }
+
+.result-card {
+  animation: result-reveal 500ms ease both;
+}
+
+@keyframes result-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
