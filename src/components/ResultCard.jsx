@@ -46,6 +46,16 @@ export default function ResultCard({
         <TraitList traits={result.missedTraits} emptyText="None missed" />
       </div>
 
+      {result.relatedMatches?.length > 0 && (
+        <div className="result-section">
+          <h3>Helpful notes</h3>
+          <TraitList
+            traits={result.relatedMatches}
+            emptyText="No helpful notes to share"
+          />
+        </div>
+      )}
+
       {result.avoidTraitsTriggered.length > 0 && (
         <div className="result-section">
           <h3>Avoided traits triggered</h3>
