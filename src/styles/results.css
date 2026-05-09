@@ -1,0 +1,48 @@
+.result-card {
+  margin-top: 1rem;
+}
+
+.result-card h2 {
+  margin: 0.25rem 0;
+  color: #2d2118;
+  font-size: 1.5rem;
+}
+
+.result-score {
+  display: inline-block;
+  margin: 0.5rem 0 1rem;
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  background: #2d2118;
+  color: #fffaf1;
+  font-weight: 800;
+}
+
+.customer-reaction {
+  margin: 0 0 1rem;
+  color: #5c4632;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.result-section {
+  margin-top: 1rem;
+  border-top: 1px solid #eadfce;
+  padding-top: 0.85rem;
+}
+
+.result-section h3 {
+  margin: 0 0 0.35rem;
+  color: #2d2118;
+  font-size: 0.95rem;
+}
+
+.result-section p {
+  margin: 0;
+  color: #6f5a45;
+  line-height: 1.4;
+}
+
+.muted {
+  color: #8a7662;
+}
