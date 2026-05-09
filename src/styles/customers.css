@@ -1,0 +1,27 @@
+.customer-card {
+  margin-bottom: 1rem;
+}
+
+.customer-heading {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.customer-emoji {
+  display: grid;
+  place-items: center;
+  min-width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 18px;
+  background: #fffaf1;
+  font-size: 2rem;
+  box-shadow: 0 4px 12px rgba(65, 40, 20, 0.08);
+}
+
+.customer-request {
+  margin: 0.5rem 0 0;
+  color: #6f5a45;
+  font-size: 1rem;
+  line-height: 1.45;
+}

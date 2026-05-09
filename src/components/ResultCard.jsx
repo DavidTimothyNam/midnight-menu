@@ -5,7 +5,8 @@ export default function ResultCard({
   selectedIngredients,
   selectedMethod,
   result,
-  onTryAgain,
+  onContinue,
+  isFinalCustomer,
 }) {
   return (
     <section className="result-card">
@@ -55,8 +56,8 @@ export default function ResultCard({
         </div>
       )}
 
-      <button className="serve-button" type="button" onClick={onTryAgain}>
-        Cook another dish
+      <button className="serve-button" type="button" onClick={onContinue}>
+        {isFinalCustomer ? "View final summary" : "Serve the next customer"}
       </button>
     </section>
   );

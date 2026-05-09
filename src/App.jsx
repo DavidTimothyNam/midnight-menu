@@ -5,17 +5,22 @@ import { ingredients } from "./data/ingredients";
 import { methods } from "./data/methods";
 import { customers } from "./data/customers";
 import { scoreDish } from "./game/scoring";
+import CustomerCard from "./components/CustomerCard";
 import IngredientCard from "./components/IngredientCard";
 import MethodPicker from "./components/MethodPicker";
 import ResultCard from "./components/ResultCard";
+import FinalSummary from "./components/FinalSummary";
 import "./styles/index.css";
 
-const currentCustomer = customers[0];
-
 export default function App() {
+  const [currentCustomerIndex, setCurrentCustomerIndex] = useState(0);
   const [selectedIngredientIds, setSelectedIngredientIds] = useState([]);
   const [selectedMethodId, setSelectedMethodId] = useState("");
   const [result, setResult] = useState(null);
+  const [servedDishes, setServedDishes] = useState([]);
+  const [isNightComplete, setIsNightComplete] = useState(false);
+
+  const currentCustomer = customers[currentCustomerIndex];
 
   const selectedIngredients = ingredients.filter((ingredient) =>
     selectedIngredientIds.includes(ingredient.id),
@@ -24,6 +29,7 @@ export default function App() {
   const selectedMethod = methods.find((method) => method.id === selectedMethodId);
 
   const canServe = selectedIngredients.length === 3 && selectedMethod;
+  const isFinalCustomer = currentCustomerIndex === customers.length - 1;
 
   function toggleIngredient(id) {
     setSelectedIngredientIds((currentIds) => {
@@ -49,10 +55,45 @@ export default function App() {
     setResult(dishResult);
   }
 
-  function resetDish() {
+  function handleContinue() {
+    const servedDish = {
+      customer: currentCustomer,
+      selectedIngredients,
+      selectedMethod,
+      result,
+    };
+
+    setServedDishes((currentDishes) => [...currentDishes, servedDish]);
+
     setSelectedIngredientIds([]);
     setSelectedMethodId("");
     setResult(null);
+
+    if (isFinalCustomer) {
+      setIsNightComplete(true);
+      return;
+    }
+
+    setCurrentCustomerIndex((currentIndex) => currentIndex + 1);
+  }
+
+  function restartNight() {
+    setCurrentCustomerIndex(0);
+    setSelectedIngredientIds([]);
+    setSelectedMethodId("");
+    setResult(null);
+    setServedDishes([]);
+    setIsNightComplete(false);
+  }
+
+  if (isNightComplete) {
+    return (
+      <main className="app-shell">
+        <section className="panel">
+          <FinalSummary servedDishes={servedDishes} onRestart={restartNight} />
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -60,9 +101,11 @@ export default function App() {
       <section className="panel">
         {!result ? (
           <>
-            <p className="eyebrow">Midnight Menu</p>
-            <h1>{currentCustomer.emoji} {currentCustomer.name}</h1>
-            <p className="intro">“{currentCustomer.requestText}”</p>
+            <CustomerCard
+              customer={currentCustomer}
+              roundNumber={currentCustomerIndex + 1}
+              totalRounds={customers.length}
+            />
 
             <p className="selection-count">
               {selectedIngredientIds.length} / 3 ingredients selected
@@ -101,7 +144,8 @@ export default function App() {
             selectedIngredients={selectedIngredients}
             selectedMethod={selectedMethod}
             result={result}
-            onTryAgain={resetDish}
+            onContinue={handleContinue}
+            isFinalCustomer={isFinalCustomer}
           />
         )}
       </section>
