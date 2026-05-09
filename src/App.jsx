@@ -13,6 +13,7 @@ import FinalSummary from "./components/FinalSummary";
 import CookingScreen from "./components/CookingScreen";
 import DishReveal from "./components/DishReveal";
 import { generateFallbackDishText } from "./ai/fallbackText";
+import { generateReaction } from "./ai/aiClient";
 import "./styles/index.css";
 
 const COOKING_DELAY_MS = 2200;
@@ -76,6 +77,18 @@ export default function App() {
 
     setPendingResult(dishResult);
     setDishText(fallbackDishText);
+
+    generateReaction({
+      customer: currentCustomer,
+      selectedIngredients,
+      selectedMethod,
+      result: dishResult,
+    }).then((aiDishText) => {
+      if (aiDishText) {
+        setDishText(aiDishText);
+      }
+    });
+
     setIsCooking(true);
     setIsCookingEnding(false);
 
