@@ -1,7 +1,10 @@
 // src/components/FinalSummary.jsx
 
 export default function FinalSummary({ servedDishes, onRestart }) {
-  const totalScore = servedDishes.reduce((sum, dish) => sum + dish.result.score, 0);
+  const totalScore = servedDishes.reduce(
+    (sum, dish) => sum + dish.result.score,
+    0,
+  );
   const averageScore = Math.round(totalScore / servedDishes.length);
 
   return (
@@ -10,8 +13,8 @@ export default function FinalSummary({ servedDishes, onRestart }) {
       <h1>The night is complete</h1>
 
       <p className="intro">
-        You served {servedDishes.length} midnight customers with an average score
-        of <strong>{averageScore}</strong>.
+        You served {servedDishes.length} midnight customers with an average
+        score of <strong>{averageScore}</strong>.
       </p>
 
       <div className="summary-list">

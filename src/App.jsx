@@ -26,7 +26,9 @@ export default function App() {
     selectedIngredientIds.includes(ingredient.id),
   );
 
-  const selectedMethod = methods.find((method) => method.id === selectedMethodId);
+  const selectedMethod = methods.find(
+    (method) => method.id === selectedMethodId,
+  );
 
   const canServe = selectedIngredients.length === 3 && selectedMethod;
   const isFinalCustomer = currentCustomerIndex === customers.length - 1;

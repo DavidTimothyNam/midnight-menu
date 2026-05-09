@@ -21,9 +21,7 @@ export function scoreDish(customer, selectedIngredients, selectedMethod) {
   let finalTraits = [...ingredientTraits, ...addedTraits];
 
   // Cooking methods can remove traits that clash with the preparation.
-  finalTraits = finalTraits.filter(
-    (trait) => !softenedTraits.includes(trait),
-  );
+  finalTraits = finalTraits.filter((trait) => !softenedTraits.includes(trait));
 
   // Amplified traits are duplicated internally only when already present.
   // This keeps the current behavior, though scoring below uses unique traits.
