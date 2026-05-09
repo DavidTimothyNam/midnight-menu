@@ -24,6 +24,12 @@ export default function FinalSummary({ servedDishes, onRestart }) {
               {index + 1}. {dish.customer.emoji} {dish.customer.name}
             </h2>
 
+            {dish.dishText?.dishName && (
+              <p>
+                <strong>Dish:</strong> {dish.dishText.dishName}
+              </p>
+            )}
+
             <p className="summary-score">{dish.result.score} / 100</p>
 
             <p>

@@ -1,0 +1,46 @@
+/* src/styles/dishReveal.css */
+
+.dish-reveal-card {
+  animation: dish-reveal-in 520ms ease both;
+}
+
+.dish-reveal-card > .eyebrow {
+  text-align: center;
+}
+
+.dish-reveal-hero {
+  display: grid;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  margin: 0.75rem auto 1rem;
+  border-radius: 28px;
+  background: #fffaf1;
+  font-size: 3rem;
+  box-shadow: 0 8px 24px rgba(65, 40, 20, 0.1);
+}
+
+.dish-reveal-card h1 {
+  text-align: center;
+}
+
+.dish-description {
+  max-width: 28rem;
+  margin: 0.75rem auto 0;
+  color: #5c4632;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@keyframes dish-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

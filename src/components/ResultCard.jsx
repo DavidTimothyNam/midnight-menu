@@ -5,6 +5,7 @@ export default function ResultCard({
   selectedIngredients,
   selectedMethod,
   result,
+  dishText,
   onContinue,
   isFinalCustomer,
 }) {
@@ -12,13 +13,21 @@ export default function ResultCard({
     <section className="result-card">
       <p className="eyebrow">Dish served</p>
 
-      <h2>{getResultTitle(result.score)}</h2>
+      <h2>{dishText?.dishName ?? getResultTitle(result.score)}</h2>
+
+      {dishText?.dishDescription && (
+        <p className="dish-result-description">{dishText.dishDescription}</p>
+      )}
 
       <p className="result-score">{result.score} / 100</p>
 
       <p className="customer-reaction">
-        {getFallbackReaction(result.score, customer)}
+        {dishText?.customerReaction ?? getFallbackReaction(result.score, customer)}
       </p>
+
+      {dishText?.shortExplanation && (
+        <p className="short-explanation">{dishText.shortExplanation}</p>
+      )}
 
       <div className="result-section">
         <h3>Ingredients</h3>

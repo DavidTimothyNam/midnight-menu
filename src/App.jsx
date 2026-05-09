@@ -11,6 +11,8 @@ import MethodPicker from "./components/MethodPicker";
 import ResultCard from "./components/ResultCard";
 import FinalSummary from "./components/FinalSummary";
 import CookingScreen from "./components/CookingScreen";
+import DishReveal from "./components/DishReveal";
+import { generateFallbackDishText } from "./ai/fallbackText";
 import "./styles/index.css";
 
 const COOKING_DELAY_MS = 2200;
@@ -20,6 +22,8 @@ export default function App() {
   const [selectedIngredientIds, setSelectedIngredientIds] = useState([]);
   const [selectedMethodId, setSelectedMethodId] = useState("");
   const [result, setResult] = useState(null);
+  const [pendingResult, setPendingResult] = useState(null);
+  const [dishText, setDishText] = useState(null);
   const [servedDishes, setServedDishes] = useState([]);
   const [isNightComplete, setIsNightComplete] = useState(false);
   const [isCooking, setIsCooking] = useState(false);
@@ -63,6 +67,15 @@ export default function App() {
       selectedMethod,
     );
 
+    const fallbackDishText = generateFallbackDishText({
+      customer: currentCustomer,
+      selectedIngredients,
+      selectedMethod,
+      result: dishResult,
+    });
+
+    setPendingResult(dishResult);
+    setDishText(fallbackDishText);
     setIsCooking(true);
     setIsCookingEnding(false);
 
@@ -70,18 +83,22 @@ export default function App() {
       setIsCookingEnding(true);
 
       window.setTimeout(() => {
-        setResult(dishResult);
         setIsCooking(false);
         setIsCookingEnding(false);
       }, 450);
     }, COOKING_DELAY_MS);
   }
+  function handleServeRevealedDish() {
+    setResult(pendingResult);
+  }
+
   function handleContinue() {
     const servedDish = {
       customer: currentCustomer,
       selectedIngredients,
       selectedMethod,
       result,
+      dishText,
     };
 
     setServedDishes((currentDishes) => [...currentDishes, servedDish]);
@@ -89,6 +106,8 @@ export default function App() {
     setSelectedIngredientIds([]);
     setSelectedMethodId("");
     setResult(null);
+    setPendingResult(null);
+    setDishText(null);
     setIsCooking(false);
     setIsCookingEnding(false);
 
@@ -105,6 +124,8 @@ export default function App() {
     setSelectedIngredientIds([]);
     setSelectedMethodId("");
     setResult(null);
+    setPendingResult(null);
+    setDishText(null);
     setServedDishes([]);
     setIsNightComplete(false);
     setIsCooking(false);
@@ -130,6 +151,13 @@ export default function App() {
             selectedIngredients={selectedIngredients}
             selectedMethod={selectedMethod}
             isEnding={isCookingEnding}
+          />
+        ) : dishText && pendingResult && !result ? (
+          <DishReveal
+            dishText={dishText}
+            selectedIngredients={selectedIngredients}
+            selectedMethod={selectedMethod}
+            onServeDish={handleServeRevealedDish}
           />
         ) : !result ? (
           <>
@@ -176,6 +204,7 @@ export default function App() {
             selectedIngredients={selectedIngredients}
             selectedMethod={selectedMethod}
             result={result}
+            dishText={dishText}
             onContinue={handleContinue}
             isFinalCustomer={isFinalCustomer}
           />

@@ -18,6 +18,20 @@
   font-weight: 800;
 }
 
+
+.dish-result-description,
+.short-explanation {
+  margin: 0 0 1rem;
+  color: #6f5a45;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.short-explanation {
+  border-left: 3px solid #d8b98c;
+  padding-left: 0.75rem;
+}
+
 .customer-reaction {
   margin: 0 0 1rem;
   color: #5c4632;
