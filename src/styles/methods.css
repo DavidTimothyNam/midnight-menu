@@ -1,0 +1,72 @@
+.method-section {
+  margin-top: 1.5rem;
+}
+
+.method-section h2 {
+  margin: 0;
+  color: #2d2118;
+  font-size: 1.25rem;
+}
+
+.section-note {
+  margin: 0.25rem 0 0.8rem;
+  color: #6f5a45;
+  line-height: 1.4;
+}
+
+.method-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.method-card {
+  width: 100%;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  text-align: left;
+  border: 2px solid #eadfce;
+  background: #fffaf1;
+  border-radius: 18px;
+  padding: 0.9rem;
+  color: #2d2118;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(65, 40, 20, 0.08);
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.method-card:hover {
+  transform: translateY(-1px);
+  border-color: #d8b98c;
+}
+
+.method-card.selected {
+  background: #eaf7ff;
+  border-color: #4f9ac7;
+}
+
+.method-emoji {
+  display: grid;
+  place-items: center;
+  min-width: 3rem;
+  height: 3rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 2rem;
+}
+
+.method-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.method-card p {
+  margin: 0.25rem 0 0.65rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: #6f5a45;
+}

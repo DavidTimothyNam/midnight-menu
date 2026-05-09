@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import { ingredients } from "./data/ingredients";
+import { methods } from "./data/methods";
 import IngredientCard from "./components/IngredientCard";
-import "./App.css";
+import MethodPicker from "./components/MethodPicker";
+import "./styles/index.css";
 
 export default function App() {
   const [selectedIngredientIds, setSelectedIngredientIds] = useState([]);
+  const [selectedMethodId, setSelectedMethodId] = useState("");
+
+  const canServe =
+    selectedIngredientIds.length === 3 && selectedMethodId.length > 0;
 
   function toggleIngredient(id) {
     setSelectedIngredientIds((currentIds) => {
@@ -22,18 +28,25 @@ export default function App() {
     });
   }
 
+  function handleServe() {
+    console.log({
+      selectedIngredientIds,
+      selectedMethodId,
+    });
+  }
+
   return (
     <main className="app-shell">
       <section className="panel">
         <p className="eyebrow">Midnight Menu</p>
-        <h1>Choose 3 ingredients</h1>
+        <h1>Build tonight&apos;s dish</h1>
         <p className="intro">
-          Pick ingredients that match the customer’s craving. Each one carries
-          emotional traits that affect the final dish.
+          Choose three ingredients and one cooking method. Each choice changes
+          the emotional shape of the meal.
         </p>
 
         <p className="selection-count">
-          {selectedIngredientIds.length} / 3 selected
+          {selectedIngredientIds.length} / 3 ingredients selected
         </p>
 
         <div className="ingredient-grid">
@@ -47,6 +60,21 @@ export default function App() {
             />
           ))}
         </div>
+
+        <MethodPicker
+          methods={methods}
+          selectedMethodId={selectedMethodId}
+          onSelect={setSelectedMethodId}
+        />
+
+        <button
+          className="serve-button"
+          type="button"
+          disabled={!canServe}
+          onClick={handleServe}
+        >
+          Serve the dish
+        </button>
       </section>
     </main>
   );
