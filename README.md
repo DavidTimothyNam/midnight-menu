@@ -10,7 +10,7 @@ AI is used only to add atmosphere: dish names, descriptions, customer reactions,
 
 ## Demo
 
-[![Midnight Menu Demo](https://img.youtube.com/vi/N12dFx8NhW0/0.jpg)](https://www.youtube.com/watch?v=N12dFx8NhW0)
+[![Midnight Menu Demo](https://img.youtube.com/vi/yK1CYA2UEbU/0.jpg)](https://www.youtube.com/watch?v=yK1CYA2UEbU)
 
 ---
 
