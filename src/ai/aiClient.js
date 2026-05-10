@@ -13,7 +13,7 @@ export async function generateReaction({
     result,
   });
 
-  console.log("Calling /api/generate-reaction...");
+  // console.log("Calling /api/generate-reaction...");
 
   const response = await fetch("/api/generate-reaction", {
     method: "POST",
@@ -23,7 +23,7 @@ export async function generateReaction({
     body: JSON.stringify({ prompt }),
   });
 
-  console.log("/api/generate-reaction status:", response.status);
+  // console.log("/api/generate-reaction status:", response.status);
 
   const data = await response.json().catch(() => null);
 
@@ -43,6 +43,6 @@ export async function generateReaction({
     throw new Error("Malformed AI response");
   }
 
-  console.log("AI dish text received:", data);
+  // console.log("AI dish text received:", data);
   return data;
 }

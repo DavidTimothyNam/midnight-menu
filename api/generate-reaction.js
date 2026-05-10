@@ -6,17 +6,6 @@ export default async function handler(request, response) {
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  console.log("Has Gemini key:", Boolean(apiKey));
-
-  if (!apiKey) {
-    return response.status(500).json({ error: "Missing GEMINI_API_KEY" });
-  }
-
-  console.log(
-    "Prompt received:",
-    typeof request.body?.prompt,
-    request.body?.prompt?.slice?.(0, 80),
-  );
 
   if (!apiKey) {
     return response.status(500).json({ error: "Missing GEMINI_API_KEY" });
@@ -45,8 +34,11 @@ export default async function handler(request, response) {
           ],
           generationConfig: {
             temperature: 0.8,
-            maxOutputTokens: 300,
+            maxOutputTokens: 700,
             responseMimeType: "application/json",
+            thinkingConfig: {
+              thinkingBudget: 0,
+            },
           },
         }),
       },
@@ -54,18 +46,34 @@ export default async function handler(request, response) {
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
-      console.error("Gemini error:", errorText);
-      return response.status(502).json({ error: "Gemini request failed" });
+      console.error("Gemini error:", geminiResponse.status, errorText);
+      return response.status(502).json({
+        error: "Gemini request failed",
+        status: geminiResponse.status,
+      });
     }
 
     const data = await geminiResponse.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const candidate = data?.candidates?.[0];
+    const text = candidate?.content?.parts?.[0]?.text;
+
+    if (candidate?.finishReason === "MAX_TOKENS") {
+      console.error("Gemini response hit max tokens:", data?.usageMetadata);
+      return response.status(502).json({ error: "Gemini response cut off" });
+    }
 
     if (!text) {
       return response.status(502).json({ error: "Empty Gemini response" });
     }
 
-    const parsed = JSON.parse(text);
+    let parsed;
+
+    try {
+      parsed = JSON.parse(text);
+    } catch (error) {
+      console.error("Gemini returned invalid JSON:", text, error);
+      return response.status(502).json({ error: "Invalid Gemini JSON" });
+    }
 
     if (
       !parsed ||

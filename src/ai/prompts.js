@@ -4,54 +4,41 @@ export function buildReactionPrompt({
   selectedMethod,
   result,
 }) {
-  const ingredientList = selectedIngredients
-    .map((ingredient) => {
-      return `${ingredient.name}: ${ingredient.traits.join(", ")}`;
-    })
-    .join("\n");
-
   return `
-You are writing flavor text for Midnight Menu, a cozy cooking puzzle game.
+You write flavor text for Midnight Menu, a cozy cooking puzzle game.
 
-The game has already calculated the score.
-Do not change the score.
-Do not invent new scoring rules.
-Do not claim the dish matched traits it did not match.
-Do not say the AI cooked the dish.
-The player is the chef.
+Rules:
+- The player is the chef.
+- Score is already calculated. Do not change it.
+- Do not invent rules.
+- Do not claim traits matched unless listed in matchedTraits.
+- Return JSON only.
 
-Customer:
-${customer.name}
-
-Customer request:
-${customer.requestText ?? customer.request}
-
-Chosen ingredients:
-${ingredientList}
-
-Cooking method:
-${selectedMethod.name}
-
-Score:
-${result.score}
-
-Matched target traits:
-${result.matchedTraits.join(", ") || "none"}
-
-Missed target traits:
-${result.missedTraits.join(", ") || "none"}
-
-Avoid traits triggered:
-${result.avoidTraitsTriggered.join(", ") || "none"}
-
-Write cozy, concise flavor text.
-
-Return JSON only in this exact shape:
+JSON shape:
 {
   "dishName": string,
   "dishDescription": string,
   "customerReaction": string,
   "shortExplanation": string
 }
-`.trim();
+
+Input:
+${JSON.stringify({
+  request: customer.requestText,
+  ingredients: selectedIngredients.map((item) => ({
+    name: item.name,
+    traits: item.traits,
+  })),
+  method: {
+    name: selectedMethod.name,
+    adds: selectedMethod.adds,
+    softens: selectedMethod.softens,
+    amplifies: selectedMethod.amplifies,
+  },
+  score: result.score,
+  matchedTraits: result.matchedTraits,
+  missedTraits: result.missedTraits,
+  avoidTraitsTriggered: result.avoidTraitsTriggered,
+})}
+`;
 }
