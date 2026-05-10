@@ -183,6 +183,7 @@ async function requestGeneratedCustomerText(traits) {
 }
 
 export default function App() {
+  const [hasStarted, setHasStarted] = useState(false);
   const [currentCustomerIndex, setCurrentCustomerIndex] = useState(0);
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [isLoadingCustomer, setIsLoadingCustomer] = useState(true);
@@ -200,13 +201,17 @@ export default function App() {
   const hasLoadedOpeningCustomer = useRef(false);
 
   useEffect(() => {
+    if (!hasStarted) {
+      return;
+    }
+
     if (hasLoadedOpeningCustomer.current) {
       return;
     }
 
     hasLoadedOpeningCustomer.current = true;
     void loadCustomerForIndex(0);
-  }, []);
+  }, [hasStarted]);
 
   async function createNextCustomer(index) {
     const traits = generateCustomerTraits();
@@ -362,6 +367,34 @@ export default function App() {
       <main className="app-shell">
         <section className="panel">
           <FinalSummary servedDishes={servedDishes} onRestart={restartNight} />
+        </section>
+      </main>
+    );
+  }
+
+  if (!hasStarted) {
+    return (
+      <main className="intro-shell">
+        <section className="title-screen">
+          <div className="title-kicker">🌙 Open for one strange night</div>
+
+          <h1>Midnight Menu</h1>
+
+          <p className="title-copy">
+            Serve cozy, dreamlike dishes to midnight customers.
+          </p>
+
+          <p className="title-subcopy">
+            Choose three ingredients and one cooking method. Balance the clues,
+            avoid the wrong mood, and feed the feeling.
+          </p>
+
+          <button
+            className="title-start-button"
+            onClick={() => setHasStarted(true)}
+          >
+            Start the Night
+          </button>
         </section>
       </main>
     );
