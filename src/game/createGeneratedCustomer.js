@@ -1,12 +1,13 @@
 // src/game/createGeneratedCustomer.js
 
 import { customers } from "../data/customers";
+import { normalizeCustomerEmoji } from "./customerEmoji";
 
 export function createGeneratedCustomerFromText({ index = 0, traits, text }) {
   return {
     id: `generated-${index}`,
     name: text.characterName,
-    emoji: text.characterEmoji,
+    emoji: normalizeCustomerEmoji(text.characterEmoji, index),
     requestText: text.requestText,
     targetTraits: traits.targetTraits,
     relatedTraits: traits.relatedTraits,

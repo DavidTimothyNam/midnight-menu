@@ -5,6 +5,7 @@ import { ingredients } from "./data/ingredients";
 import { methods } from "./data/methods";
 import { customers } from "./data/customers";
 import { scoreDish } from "./game/scoring";
+import { normalizeCustomerEmoji } from "./game/customerEmoji";
 import CustomerCard from "./components/CustomerCard";
 import IngredientCard from "./components/IngredientCard";
 import MethodPicker from "./components/MethodPicker";
@@ -140,7 +141,7 @@ function createCustomerFromGeneratedText({ index, traits, text }) {
   return {
     id: `generated-customer-${index}`,
     name: text.characterName,
-    emoji: text.characterEmoji,
+    emoji: normalizeCustomerEmoji(text.characterEmoji, index),
     requestText: text.requestText,
     targetTraits: traits.targetTraits,
     relatedTraits: traits.relatedTraits,
