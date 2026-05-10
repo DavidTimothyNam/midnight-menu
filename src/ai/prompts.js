@@ -42,3 +42,36 @@ ${JSON.stringify({
 })}
 `;
 }
+
+export function buildCustomerPrompt({
+  targetTraits,
+  relatedTraits = [],
+  avoidTraits = [],
+}) {
+  return `
+You write customers for Midnight Menu, a cozy cooking puzzle game.
+
+Rules:
+- The game has already selected the hidden scoring traits.
+- Do not invent new gameplay traits.
+- Do not directly list the exact trait words.
+- Write a cozy, slightly dreamlike food request.
+- Hint at target traits through sensory/emotional language.
+- Include one gentle warning that hints at avoid traits.
+- Return JSON only.
+
+Return:
+{
+  "characterEmoji": string,
+  "characterName": string,
+  "requestText": string
+}
+
+Input:
+${JSON.stringify({
+  targetTraits,
+  relatedTraits,
+  avoidTraits,
+})}
+`;
+}
