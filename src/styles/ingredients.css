@@ -11,13 +11,13 @@
   gap: 0.85rem;
   align-items: flex-start;
   text-align: left;
-  border: 2px solid #eadfce;
-  background: #fffaf1;
+  border: 1px solid var(--border);
+  background: var(--night-650);
   border-radius: 18px;
   padding: 0.9rem;
-  color: #2d2118;
+  color: var(--ink);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(65, 40, 20, 0.08);
+  box-shadow: 0 0.7rem 1.4rem rgba(0, 0, 0, 0.18);
   transition:
     transform 120ms ease,
     border-color 120ms ease,
@@ -27,12 +27,13 @@
 
 .ingredient-card:hover {
   transform: translateY(-1px);
-  border-color: #d8b98c;
+  border-color: var(--border-strong);
+  background: var(--night-600);
 }
 
 .ingredient-card.selected {
-  background: #fff1cc;
-  border-color: #d18b2f;
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 
 .ingredient-card:disabled {
@@ -46,7 +47,7 @@
   min-width: 3rem;
   height: 3rem;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 243, 223, 0.08);
   font-size: 2rem;
 }
 
@@ -70,7 +71,7 @@
   margin: 0.25rem 0 0.65rem;
   font-size: 0.9rem;
   line-height: 1.35;
-  color: #6f5a45;
+  color: var(--muted);
 }
 
 .trait-list {
@@ -88,11 +89,11 @@
 }
 
 .trait-pill {
-  background: #f0e3d0;
-  color: #5c4632;
+  background: rgba(255, 243, 223, 0.09);
+  color: var(--ink-soft);
 }
 
 .selected-pill {
-  background: #2d2118;
-  color: #fffaf1;
+  background: var(--accent);
+  color: #1a120d;
 }

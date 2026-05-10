@@ -4,7 +4,7 @@
 
 .result-card h2 {
   margin: 0.25rem 0;
-  color: #2d2118;
+  color: var(--ink);
   font-size: 1.5rem;
 }
 
@@ -13,8 +13,8 @@
   margin: 0.5rem 0 1rem;
   border-radius: 999px;
   padding: 0.4rem 0.75rem;
-  background: #2d2118;
-  color: #fffaf1;
+  background: var(--accent);
+  color: #1a120d;
   font-weight: 800;
 }
 
@@ -22,43 +22,43 @@
 .dish-result-description,
 .short-explanation {
   margin: 0 0 1rem;
-  color: #6f5a45;
+  color: var(--muted);
   font-size: 0.95rem;
   line-height: 1.45;
 }
 
 .short-explanation {
-  border-left: 3px solid #d8b98c;
+  border-left: 3px solid var(--accent);
   padding-left: 0.75rem;
 }
 
 .customer-reaction {
   margin: 0 0 1rem;
-  color: #5c4632;
+  color: var(--ink-soft);
   font-size: 1rem;
   line-height: 1.5;
 }
 
 .result-section {
   margin-top: 1rem;
-  border-top: 1px solid #eadfce;
+  border-top: 1px solid var(--border);
   padding-top: 0.85rem;
 }
 
 .result-section h3 {
   margin: 0 0 0.35rem;
-  color: #2d2118;
+  color: var(--ink);
   font-size: 0.95rem;
 }
 
 .result-section p {
   margin: 0;
-  color: #6f5a45;
+  color: var(--muted);
   line-height: 1.4;
 }
 
 .muted {
-  color: #8a7662;
+  color: var(--muted);
 }
 
 .result-card {

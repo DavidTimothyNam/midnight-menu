@@ -2,8 +2,30 @@
   box-sizing: border-box;
 }
 
+:root {
+  color-scheme: dark;
+  --night-900: #0c0b10;
+  --night-800: #121017;
+  --night-700: #1a151d;
+  --night-650: #211a22;
+  --night-600: #2b2226;
+  --ink: #fff3df;
+  --ink-soft: #ead9c0;
+  --muted: #bda78c;
+  --muted-strong: #d4b68c;
+  --border: rgba(255, 219, 166, 0.16);
+  --border-strong: rgba(255, 186, 91, 0.48);
+  --accent: #f0a84b;
+  --accent-soft: rgba(240, 168, 75, 0.16);
+  --cool: #79c0d8;
+  --cool-soft: rgba(121, 192, 216, 0.14);
+  --shadow: rgba(0, 0, 0, 0.34);
+}
+
 body {
   margin: 0;
+  background: var(--night-900);
+  color: var(--ink);
   font-family:
     Inter,
     ui-sans-serif,
@@ -20,12 +42,9 @@ body {
   place-items: center;
   padding: 1.25rem;
   background:
-    radial-gradient(
-      circle at top,
-      rgba(255, 226, 170, 0.28),
-      transparent 36rem
-    ),
-    #24150f;
+    linear-gradient(160deg, rgba(240, 168, 75, 0.16), transparent 32rem),
+    linear-gradient(25deg, rgba(121, 192, 216, 0.08), transparent 34rem),
+    var(--night-900);
 }
 
 .title-screen {
@@ -35,14 +54,16 @@ body {
   text-align: center;
   padding: 2rem 1.4rem;
   border-radius: 1.5rem;
-  background: rgba(255, 244, 220, 0.9);
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  background: rgba(26, 21, 29, 0.92);
+  box-shadow: 0 1.5rem 4rem var(--shadow);
 }
 
 .title-kicker {
   font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--muted-strong);
   opacity: 0.75;
 }
 
@@ -50,17 +71,20 @@ body {
   font-size: clamp(2.8rem, 13vw, 4.5rem);
   line-height: 0.95;
   margin: 0;
+  color: var(--ink);
 }
 
 .title-copy {
   font-size: 1.05rem;
   margin: 0;
+  color: var(--ink-soft);
 }
 
 .title-subcopy {
   max-width: 28rem;
   margin: 0 auto;
   line-height: 1.5;
+  color: var(--muted);
   opacity: 0.78;
 }
 

@@ -420,8 +420,14 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
-      <section className="panel">
+    <main className="app-shell game-shell">
+      <header className="game-topbar">
+        <div className="game-brand">
+          <span className="game-brand-mark">🌙</span>
+          <span>Midnight Menu</span>
+        </div>
+      </header>
+      <section className="panel game-panel">
         {isCooking ? (
           <CookingScreen
             customer={currentCustomer}

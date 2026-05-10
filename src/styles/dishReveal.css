@@ -15,9 +15,9 @@
   height: 5rem;
   margin: 0.75rem auto 1rem;
   border-radius: 28px;
-  background: #fffaf1;
+  background: rgba(255, 243, 223, 0.08);
   font-size: 3rem;
-  box-shadow: 0 8px 24px rgba(65, 40, 20, 0.1);
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .dish-reveal-card h1 {
@@ -27,7 +27,7 @@
 .dish-description {
   max-width: 28rem;
   margin: 0.75rem auto 0;
-  color: #5c4632;
+  color: var(--ink-soft);
   font-size: 1.05rem;
   line-height: 1.5;
   text-align: center;

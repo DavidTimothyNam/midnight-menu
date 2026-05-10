@@ -15,6 +15,7 @@
 
 .cooking-screen h2 {
   margin: 0.35rem 0 0;
+  color: var(--ink);
 }
 
 .floating-ingredients {
@@ -45,7 +46,7 @@
   display: grid;
   gap: 0.45rem;
   margin-top: 1.25rem;
-  color: rgba(56, 39, 25, 0.75);
+  color: var(--muted);
 }
 
 .cooking-steps p {
