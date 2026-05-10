@@ -390,7 +390,7 @@ export default function App() {
           </p>
 
           <button
-            className="title-start-button"
+            className="serve-button title-start-button"
             onClick={() => setHasStarted(true)}
           >
             Start the Night
