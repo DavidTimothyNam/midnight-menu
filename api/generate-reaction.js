@@ -1,91 +1,124 @@
 /* global process */
 
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant";
+
+function isLiveAiEnabled() {
+  return process.env.USE_LIVE_AI === "true";
+}
+
+function getGroqText(data) {
+  return data?.choices?.[0]?.message?.content;
+}
+
+function stripJsonFence(text) {
+  return text
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+}
+
+function isValidReaction(data) {
+  return (
+    data &&
+    typeof data.dishName === "string" &&
+    typeof data.dishDescription === "string" &&
+    typeof data.customerReaction === "string" &&
+    typeof data.shortExplanation === "string"
+  );
+}
+
 export default async function handler(request, response) {
   if (request.method !== "POST") {
     return response.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  if (!isLiveAiEnabled()) {
+    return response.status(503).json({
+      error: "Live AI disabled",
+      code: "LIVE_AI_DISABLED",
+    });
+  }
+
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
-    return response.status(500).json({ error: "Missing GEMINI_API_KEY" });
+    return response.status(500).json({ error: "Missing GROQ_API_KEY" });
   }
 
   try {
-    const { prompt } = request.body;
+    const { prompt } = request.body || {};
 
     if (!prompt || typeof prompt !== "string") {
       return response.status(400).json({ error: "Missing prompt" });
     }
 
-    const geminiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 700,
-            responseMimeType: "application/json",
-            thinkingConfig: {
-              thinkingBudget: 0,
-            },
-          },
-        }),
+    const groqResponse = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    );
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You write cozy JSON-only flavor text for a cooking puzzle game. Return valid JSON only. Do not use markdown. Do not add commentary.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.8,
+        max_completion_tokens: 700,
+        response_format: { type: "json_object" },
+      }),
+    });
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error("Gemini error:", geminiResponse.status, errorText);
+    if (!groqResponse.ok) {
+      const errorText = await groqResponse.text();
+      console.error("Groq reaction error:", groqResponse.status, errorText);
+
       return response.status(502).json({
-        error: "Gemini request failed",
-        status: geminiResponse.status,
+        error: "Groq request failed",
+        status: groqResponse.status,
       });
     }
 
-    const data = await geminiResponse.json();
-    const candidate = data?.candidates?.[0];
-    const text = candidate?.content?.parts?.[0]?.text;
-
-    if (candidate?.finishReason === "MAX_TOKENS") {
-      console.error("Gemini response hit max tokens:", data?.usageMetadata);
-      return response.status(502).json({ error: "Gemini response cut off" });
-    }
+    const data = await groqResponse.json();
+    const text = getGroqText(data);
 
     if (!text) {
-      return response.status(502).json({ error: "Empty Gemini response" });
+      return response.status(502).json({ error: "Empty Groq response" });
     }
 
     let parsed;
 
     try {
-      parsed = JSON.parse(text);
+      parsed = JSON.parse(stripJsonFence(text));
     } catch (error) {
-      console.error("Gemini returned invalid JSON:", text, error);
-      return response.status(502).json({ error: "Invalid Gemini JSON" });
+      console.error("Groq returned invalid JSON:", text, error);
+      return response.status(502).json({ error: "Invalid Groq JSON" });
     }
 
-    if (
-      !parsed ||
-      typeof parsed.dishName !== "string" ||
-      typeof parsed.dishDescription !== "string" ||
-      typeof parsed.customerReaction !== "string" ||
-      typeof parsed.shortExplanation !== "string"
-    ) {
-      return response.status(502).json({ error: "Malformed Gemini response" });
+    if (!isValidReaction(parsed)) {
+      console.error("Malformed Groq reaction response:", parsed);
+      return response.status(502).json({
+        error: "Malformed Groq response",
+      });
     }
 
-    return response.status(200).json(parsed);
+    return response.status(200).json({
+      dishName: parsed.dishName,
+      dishDescription: parsed.dishDescription,
+      customerReaction: parsed.customerReaction,
+      shortExplanation: parsed.shortExplanation,
+    });
   } catch (error) {
     console.error("generate-reaction error:", error);
     return response.status(500).json({ error: "Internal server error" });

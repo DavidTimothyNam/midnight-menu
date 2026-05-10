@@ -1,5 +1,25 @@
 /* global process */
 
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant";
+
+function isLiveAiEnabled() {
+  return process.env.USE_LIVE_AI === "true";
+}
+
+function getGroqText(data) {
+  return data?.choices?.[0]?.message?.content;
+}
+
+function stripJsonFence(text) {
+  return text
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+}
+
 function isValidCustomer(data) {
   return (
     data &&
@@ -14,10 +34,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  if (!isLiveAiEnabled()) {
+    return res.status(503).json({
+      error: "Live AI disabled",
+      code: "LIVE_AI_DISABLED",
+    });
+  }
+
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
+    return res.status(500).json({ error: "Missing GROQ_API_KEY" });
   }
 
   try {
@@ -27,73 +54,63 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing prompt" });
     }
 
-    const geminiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 700,
-            responseMimeType: "application/json",
-            thinkingConfig: {
-              thinkingBudget: 0,
-            },
-          },
-        }),
+    const groqResponse = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    );
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You write cozy JSON-only customer text for a cooking puzzle game. Return valid JSON only. Do not use markdown. Do not add commentary.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.8,
+        max_completion_tokens: 700,
+        response_format: { type: "json_object" },
+      }),
+    });
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
+    if (!groqResponse.ok) {
+      const errorText = await groqResponse.text();
       console.error(
-        "Gemini customer request failed:",
-        geminiResponse.status,
+        "Groq customer request failed:",
+        groqResponse.status,
         errorText,
       );
 
       return res.status(502).json({
-        error: "Gemini request failed",
-        status: geminiResponse.status,
+        error: "Groq request failed",
+        status: groqResponse.status,
       });
     }
 
-    const geminiData = await geminiResponse.json();
-    const candidate = geminiData?.candidates?.[0];
-    const text = candidate?.content?.parts?.[0]?.text;
-
-    if (candidate?.finishReason === "MAX_TOKENS") {
-      console.error(
-        "Gemini customer response hit max tokens:",
-        geminiData?.usageMetadata,
-      );
-      return res.status(502).json({ error: "Gemini response cut off" });
-    }
+    const data = await groqResponse.json();
+    const text = getGroqText(data);
 
     if (!text) {
       return res.status(502).json({
-        error: "Gemini returned no text",
+        error: "Groq returned no text",
       });
     }
 
     let parsed;
 
     try {
-      parsed = JSON.parse(text);
+      parsed = JSON.parse(stripJsonFence(text));
     } catch (error) {
-      console.error("Gemini returned invalid customer JSON:", text, error);
+      console.error("Groq returned invalid customer JSON:", text, error);
 
       return res.status(502).json({
-        error: "Invalid Gemini JSON",
+        error: "Invalid Groq JSON",
       });
     }
 

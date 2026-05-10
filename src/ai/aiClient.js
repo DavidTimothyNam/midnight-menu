@@ -27,6 +27,10 @@ export async function generateReaction({
 
   const data = await response.json().catch(() => null);
 
+  if (response.status === 503 && data?.code === "LIVE_AI_DISABLED") {
+    return null;
+  }
+
   if (!response.ok) {
     console.error("/api/generate-reaction failed:", data);
     throw new Error(data?.error || "AI request failed");
