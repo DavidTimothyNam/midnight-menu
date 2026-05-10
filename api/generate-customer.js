@@ -52,7 +52,7 @@ export default async function handler(request, response) {
           },
         ],
         temperature: 0.9,
-        max_tokens: 220,
+        max_tokens: 100,
         response_format: {
           type: "json_object",
         },

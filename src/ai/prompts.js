@@ -48,37 +48,9 @@ export function buildCustomerPrompt({
   relatedTraits,
   avoidTraits,
 }) {
-  return `
-Write one cozy Midnight Menu customer for a cooking puzzle game.
-
-The player will see only the customer, name, emoji, and request.
-The trait lists are hidden design guidance.
-
-Do not mention trait names directly.
-Do not explain the scoring.
-Do not include ingredients.
-Do not include cooking methods.
-Do not decide whether the player succeeds.
-
-Target traits to hint at:
-${targetTraits.join(", ")}
-
-Helpful related traits to gently suggest:
-${relatedTraits.join(", ")}
-
-Traits to warn against:
-${avoidTraits.join(", ")}
-
-Write a request that includes:
-- one emotional desire
-- one or two sensory clues
-- a gentle warning related to the avoid traits
-
-Return JSON only:
-{
-  "characterEmoji": string,
-  "characterName": string,
-  "requestText": string
-}
-`;
+  return `Cozy cooking game customer.
+T:${targetTraits.join(",")}
+H:${relatedTraits.join(",")}
+A:${avoidTraits.join(",")}
+JSON only: {"characterEmoji":"","characterName":"","requestText":"1 sentence. Hint T/H. Warn against A. No trait names."}`;
 }
