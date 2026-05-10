@@ -127,8 +127,13 @@ function generateCustomerTraits() {
   };
 }
 
-function getFallbackCustomer(index) {
-  return customers[index % customers.length];
+function getRandomFallbackCustomer(index = 0) {
+  const customer = customers[Math.floor(Math.random() * customers.length)];
+
+  return {
+    ...customer,
+    id: `${customer.id ?? "fallback"}-${index}-${Date.now()}`,
+  };
 }
 
 function createCustomerFromGeneratedText({ index, traits, text }) {
@@ -220,7 +225,7 @@ export default function App() {
       const text = await requestGeneratedCustomerText(traits);
 
       if (!text) {
-        return getFallbackCustomer(index);
+        return getRandomFallbackCustomer(index);
       }
 
       return createCustomerFromGeneratedText({
@@ -230,7 +235,7 @@ export default function App() {
       });
     } catch (error) {
       console.warn("Using fallback customer:", error);
-      return getFallbackCustomer(index);
+      return getRandomFallbackCustomer(index);
     }
   }
 
