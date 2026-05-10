@@ -7,35 +7,13 @@ function isLiveAiEnabled() {
   return process.env.USE_LIVE_AI === "true";
 }
 
-function getGroqText(data) {
-  return data?.choices?.[0]?.message?.content;
-}
-
-function stripJsonFence(text) {
-  return text
-    .trim()
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/\s*```$/i, "")
-    .trim();
-}
-
-function isValidCustomer(data) {
-  return (
-    data &&
-    typeof data.characterEmoji === "string" &&
-    typeof data.characterName === "string" &&
-    typeof data.requestText === "string"
-  );
-}
-
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+export default async function handler(request, response) {
+  if (request.method !== "POST") {
+    return response.status(405).json({ error: "Method not allowed" });
   }
 
   if (!isLiveAiEnabled()) {
-    return res.status(503).json({
+    return response.status(503).json({
       error: "Live AI disabled",
       code: "LIVE_AI_DISABLED",
     });
@@ -44,21 +22,21 @@ export default async function handler(req, res) {
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: "Missing GROQ_API_KEY" });
+    return response.status(500).json({ error: "Missing GROQ_API_KEY" });
+  }
+
+  const { prompt } = request.body ?? {};
+
+  if (!prompt || typeof prompt !== "string") {
+    return response.status(400).json({ error: "Missing prompt" });
   }
 
   try {
-    const { prompt } = req.body || {};
-
-    if (!prompt || typeof prompt !== "string") {
-      return res.status(400).json({ error: "Missing prompt" });
-    }
-
     const groqResponse = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
@@ -66,63 +44,52 @@ export default async function handler(req, res) {
           {
             role: "system",
             content:
-              "You write cozy JSON-only customer text for a cooking puzzle game. Return valid JSON only. Do not use markdown. Do not add commentary.",
+              "You write cozy JSON-only flavor text for a cooking puzzle game. Return valid JSON only.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        temperature: 0.8,
-        max_completion_tokens: 700,
-        response_format: { type: "json_object" },
+        temperature: 0.9,
+        max_tokens: 220,
+        response_format: {
+          type: "json_object",
+        },
       }),
     });
 
     if (!groqResponse.ok) {
       const errorText = await groqResponse.text();
-      console.error(
-        "Groq customer request failed:",
-        groqResponse.status,
-        errorText,
-      );
 
-      return res.status(502).json({
-        error: "Groq request failed",
-        status: groqResponse.status,
+      return response.status(500).json({
+        error: "Groq customer request failed",
+        details: errorText,
       });
     }
 
     const data = await groqResponse.json();
-    const text = getGroqText(data);
+    const content = data.choices?.[0]?.message?.content;
 
-    if (!text) {
-      return res.status(502).json({
-        error: "Groq returned no text",
+    if (!content) {
+      return response.status(500).json({
+        error: "Groq returned no customer content",
       });
     }
 
-    let parsed;
+    const parsed = JSON.parse(content);
 
-    try {
-      parsed = JSON.parse(stripJsonFence(text));
-    } catch (error) {
-      console.error("Groq returned invalid customer JSON:", text, error);
-
-      return res.status(502).json({
-        error: "Invalid Groq JSON",
+    if (
+      typeof parsed.characterEmoji !== "string" ||
+      typeof parsed.characterName !== "string" ||
+      typeof parsed.requestText !== "string"
+    ) {
+      return response.status(500).json({
+        error: "Groq returned malformed customer JSON",
       });
     }
 
-    if (!isValidCustomer(parsed)) {
-      console.error("Invalid customer response shape:", parsed);
-
-      return res.status(502).json({
-        error: "Invalid customer response shape",
-      });
-    }
-
-    return res.status(200).json({
+    return response.status(200).json({
       characterEmoji: parsed.characterEmoji,
       characterName: parsed.characterName,
       requestText: parsed.requestText,
@@ -130,7 +97,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("generate-customer error:", error);
 
-    return res.status(500).json({
+    return response.status(500).json({
       error: "Internal server error",
     });
   }

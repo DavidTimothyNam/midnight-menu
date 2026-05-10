@@ -1,6 +1,6 @@
 // src/App.jsx
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ingredients } from "./data/ingredients";
 import { methods } from "./data/methods";
 import { customers } from "./data/customers";
@@ -14,12 +14,179 @@ import CookingScreen from "./components/CookingScreen";
 import DishReveal from "./components/DishReveal";
 import { generateFallbackDishText } from "./ai/fallbackText";
 import { generateReaction } from "./ai/aiClient";
+import { buildCustomerPrompt } from "./ai/prompts";
 import "./styles/index.css";
 
 const COOKING_DELAY_MS = 2200;
+const COOKING_FADE_MS = 450;
+const CUSTOMERS_PER_NIGHT = 3;
+
+const VALID_TRAITS = [
+  "courage",
+  "heat",
+  "intensity",
+  "comfort",
+  "memory",
+  "sweetness",
+  "clarity",
+  "honesty",
+  "sharpness",
+  "home",
+  "stability",
+  "fullness",
+  "calm",
+  "renewal",
+  "freshness",
+  "grief",
+  "ocean",
+  "preservation",
+  "focus",
+  "urgency",
+  "restlessness",
+  "warmth",
+  "care",
+  "richness",
+  "patience",
+  "boldness",
+  "lightness",
+];
+
+const CUSTOMER_TRAIT_SETS = [
+  {
+    id: "brave-goodbye",
+    targetTraits: ["courage", "grief", "warmth"],
+    relatedTraits: ["care", "comfort", "patience", "memory", "stability"],
+    avoidTraits: ["restlessness", "urgency"],
+  },
+  {
+    id: "clear-calm",
+    targetTraits: ["clarity", "calm", "freshness"],
+    relatedTraits: ["renewal", "lightness", "honesty", "patience", "comfort"],
+    avoidTraits: ["intensity", "heat", "restlessness"],
+  },
+  {
+    id: "home-comfort",
+    targetTraits: ["home", "comfort", "care"],
+    relatedTraits: ["warmth", "stability", "fullness", "sweetness", "memory"],
+    avoidTraits: ["urgency", "restlessness", "sharpness"],
+  },
+  {
+    id: "steady-focus",
+    targetTraits: ["focus", "stability", "patience"],
+    relatedTraits: ["clarity", "honesty", "calm", "care", "preservation"],
+    avoidTraits: ["urgency", "restlessness", "heat"],
+  },
+  {
+    id: "ocean-memory",
+    targetTraits: ["ocean", "memory", "preservation"],
+    relatedTraits: ["grief", "calm", "clarity", "freshness", "patience"],
+    avoidTraits: ["heat", "intensity", "urgency"],
+  },
+  {
+    id: "sweet-renewal",
+    targetTraits: ["sweetness", "renewal", "lightness"],
+    relatedTraits: ["comfort", "freshness", "calm", "warmth", "care"],
+    avoidTraits: ["grief", "fullness", "intensity"],
+  },
+  {
+    id: "honest-comfort",
+    targetTraits: ["honesty", "comfort", "care"],
+    relatedTraits: ["clarity", "warmth", "patience", "sweetness", "calm"],
+    avoidTraits: ["sharpness", "intensity", "urgency"],
+  },
+  {
+    id: "bold-warmth",
+    targetTraits: ["boldness", "warmth", "richness"],
+    relatedTraits: ["courage", "heat", "care", "fullness", "comfort"],
+    avoidTraits: ["restlessness", "urgency"],
+  },
+];
+
+function pickOne(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function shuffle(items) {
+  return [...items].sort(() => Math.random() - 0.5);
+}
+
+function uniqueValidTraits(traits) {
+  return [...new Set(traits)].filter((trait) => VALID_TRAITS.includes(trait));
+}
+
+function generateCustomerTraits() {
+  const traitSet = pickOne(CUSTOMER_TRAIT_SETS);
+
+  return {
+    targetTraits: uniqueValidTraits(traitSet.targetTraits).slice(0, 3),
+    relatedTraits: shuffle(uniqueValidTraits(traitSet.relatedTraits)).slice(
+      0,
+      3,
+    ),
+    avoidTraits: shuffle(uniqueValidTraits(traitSet.avoidTraits)).slice(0, 2),
+  };
+}
+
+function getFallbackCustomer(index) {
+  return customers[index % customers.length];
+}
+
+function createCustomerFromGeneratedText({ index, traits, text }) {
+  return {
+    id: `generated-customer-${index}`,
+    name: text.characterName,
+    emoji: text.characterEmoji,
+    requestText: text.requestText,
+    targetTraits: traits.targetTraits,
+    relatedTraits: traits.relatedTraits,
+    avoidTraits: traits.avoidTraits,
+  };
+}
+
+function isValidGeneratedCustomerText(data) {
+  return (
+    data &&
+    typeof data.characterEmoji === "string" &&
+    typeof data.characterName === "string" &&
+    typeof data.requestText === "string"
+  );
+}
+
+async function requestGeneratedCustomerText(traits) {
+  const prompt = buildCustomerPrompt(traits);
+
+  const response = await fetch("/api/generate-customer", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (response.status === 503 && data?.code === "LIVE_AI_DISABLED") {
+    return null;
+  }
+
+  if (!response.ok) {
+    console.error("/api/generate-customer failed:", data);
+    throw new Error(data?.error || "Customer generation failed");
+  }
+
+  if (!isValidGeneratedCustomerText(data)) {
+    console.error("Malformed generated customer response:", data);
+    throw new Error("Malformed generated customer response");
+  }
+
+  return data;
+}
 
 export default function App() {
   const [currentCustomerIndex, setCurrentCustomerIndex] = useState(0);
+  const [currentCustomer, setCurrentCustomer] = useState(null);
+  const [isLoadingCustomer, setIsLoadingCustomer] = useState(true);
+
   const [selectedIngredientIds, setSelectedIngredientIds] = useState([]);
   const [selectedMethodId, setSelectedMethodId] = useState("");
   const [result, setResult] = useState(null);
@@ -30,7 +197,47 @@ export default function App() {
   const [isCooking, setIsCooking] = useState(false);
   const [isCookingEnding, setIsCookingEnding] = useState(false);
 
-  const currentCustomer = customers[currentCustomerIndex];
+  const hasLoadedOpeningCustomer = useRef(false);
+
+  useEffect(() => {
+    if (hasLoadedOpeningCustomer.current) {
+      return;
+    }
+
+    hasLoadedOpeningCustomer.current = true;
+    void loadCustomerForIndex(0);
+  }, []);
+
+  async function createNextCustomer(index) {
+    const traits = generateCustomerTraits();
+
+    try {
+      const text = await requestGeneratedCustomerText(traits);
+
+      if (!text) {
+        return getFallbackCustomer(index);
+      }
+
+      return createCustomerFromGeneratedText({
+        index,
+        traits,
+        text,
+      });
+    } catch (error) {
+      console.warn("Using fallback customer:", error);
+      return getFallbackCustomer(index);
+    }
+  }
+
+  async function loadCustomerForIndex(index) {
+    setIsLoadingCustomer(true);
+
+    const nextCustomer = await createNextCustomer(index);
+
+    setCurrentCustomer(nextCustomer);
+    setCurrentCustomerIndex(index);
+    setIsLoadingCustomer(false);
+  }
 
   const selectedIngredients = ingredients.filter((ingredient) =>
     selectedIngredientIds.includes(ingredient.id),
@@ -41,7 +248,17 @@ export default function App() {
   );
 
   const canServe = selectedIngredients.length === 3 && selectedMethod;
-  const isFinalCustomer = currentCustomerIndex === customers.length - 1;
+  const isFinalCustomer = currentCustomerIndex === CUSTOMERS_PER_NIGHT - 1;
+
+  function resetRoundState() {
+    setSelectedIngredientIds([]);
+    setSelectedMethodId("");
+    setResult(null);
+    setPendingResult(null);
+    setDishText(null);
+    setIsCooking(false);
+    setIsCookingEnding(false);
+  }
 
   function toggleIngredient(id) {
     setSelectedIngredientIds((currentIds) => {
@@ -58,7 +275,7 @@ export default function App() {
   }
 
   function handleServe() {
-    if (!canServe) {
+    if (!canServe || !currentCustomer) {
       return;
     }
 
@@ -83,11 +300,15 @@ export default function App() {
       selectedIngredients,
       selectedMethod,
       result: dishResult,
-    }).then((aiDishText) => {
-      if (aiDishText) {
-        setDishText(aiDishText);
-      }
-    });
+    })
+      .then((aiDishText) => {
+        if (aiDishText) {
+          setDishText(aiDishText);
+        }
+      })
+      .catch((error) => {
+        console.warn("Using fallback dish text:", error);
+      });
 
     setIsCooking(true);
     setIsCookingEnding(false);
@@ -98,14 +319,15 @@ export default function App() {
       window.setTimeout(() => {
         setIsCooking(false);
         setIsCookingEnding(false);
-      }, 450);
+      }, COOKING_FADE_MS);
     }, COOKING_DELAY_MS);
   }
+
   function handleServeRevealedDish() {
     setResult(pendingResult);
   }
 
-  function handleContinue() {
+  async function handleContinue() {
     const servedDish = {
       customer: currentCustomer,
       selectedIngredients,
@@ -116,33 +338,23 @@ export default function App() {
 
     setServedDishes((currentDishes) => [...currentDishes, servedDish]);
 
-    setSelectedIngredientIds([]);
-    setSelectedMethodId("");
-    setResult(null);
-    setPendingResult(null);
-    setDishText(null);
-    setIsCooking(false);
-    setIsCookingEnding(false);
-
     if (isFinalCustomer) {
+      resetRoundState();
       setIsNightComplete(true);
       return;
     }
 
-    setCurrentCustomerIndex((currentIndex) => currentIndex + 1);
+    const nextIndex = currentCustomerIndex + 1;
+
+    resetRoundState();
+    await loadCustomerForIndex(nextIndex);
   }
 
-  function restartNight() {
-    setCurrentCustomerIndex(0);
-    setSelectedIngredientIds([]);
-    setSelectedMethodId("");
-    setResult(null);
-    setPendingResult(null);
-    setDishText(null);
+  async function restartNight() {
     setServedDishes([]);
     setIsNightComplete(false);
-    setIsCooking(false);
-    setIsCookingEnding(false);
+    resetRoundState();
+    await loadCustomerForIndex(0);
   }
 
   if (isNightComplete) {
@@ -150,6 +362,20 @@ export default function App() {
       <main className="app-shell">
         <section className="panel">
           <FinalSummary servedDishes={servedDishes} onRestart={restartNight} />
+        </section>
+      </main>
+    );
+  }
+
+  if (isLoadingCustomer || !currentCustomer) {
+    return (
+      <main className="app-shell">
+        <section className="panel">
+          <p className="eyebrow">Midnight Menu</p>
+          <h1>Opening the midnight door...</h1>
+          <p className="muted">
+            A customer is finding their way to the counter.
+          </p>
         </section>
       </main>
     );
@@ -177,7 +403,7 @@ export default function App() {
             <CustomerCard
               customer={currentCustomer}
               roundNumber={currentCustomerIndex + 1}
-              totalRounds={customers.length}
+              totalRounds={CUSTOMERS_PER_NIGHT}
             />
 
             <p className="selection-count">
@@ -190,7 +416,10 @@ export default function App() {
                   key={ingredient.id}
                   ingredient={ingredient}
                   isSelected={selectedIngredientIds.includes(ingredient.id)}
-                  isDisabled={selectedIngredientIds.length >= 3}
+                  isDisabled={
+                    selectedIngredientIds.length >= 3 &&
+                    !selectedIngredientIds.includes(ingredient.id)
+                  }
                   onToggle={toggleIngredient}
                 />
               ))}

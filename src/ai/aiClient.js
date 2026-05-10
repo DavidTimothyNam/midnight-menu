@@ -50,3 +50,50 @@ export async function generateReaction({
   // console.log("AI dish text received:", data);
   return data;
 }
+
+import { buildCustomerPrompt } from "./prompts";
+
+function isValidGeneratedCustomer(value) {
+  return (
+    value &&
+    typeof value.characterEmoji === "string" &&
+    typeof value.characterName === "string" &&
+    typeof value.requestText === "string"
+  );
+}
+
+export async function generateCustomerText({
+  targetTraits,
+  relatedTraits,
+  avoidTraits,
+}) {
+  const prompt = buildCustomerPrompt({
+    targetTraits,
+    relatedTraits,
+    avoidTraits,
+  });
+
+  const response = await fetch("/api/generate-customer", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (response.status === 503 && data?.code === "LIVE_AI_DISABLED") {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error("Generated customer request failed.");
+  }
+
+  if (!isValidGeneratedCustomer(data)) {
+    throw new Error("Generated customer response was malformed.");
+  }
+
+  return data;
+}
