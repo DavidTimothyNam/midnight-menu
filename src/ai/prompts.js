@@ -52,5 +52,6 @@ export function buildCustomerPrompt({
 T:${targetTraits.join(",")}
 H:${relatedTraits.join(",")}
 A:${avoidTraits.join(",")}
+Use real emoji, not :emoji_code:. The name can be a brief description like "The ...".
 JSON only: {"characterEmoji":"","characterName":"","requestText":"1 sentence. Hint T/H. Warn against A. No trait names."}`;
 }
